@@ -86,6 +86,16 @@ function hashTokenParaCadastro_(token) {
   return sha256_(valor);
 }
 
+function cadastrarCodigo(token) {
+  const hash = hashTokenParaCadastro_(token);
+  const sheet = planilha_().getSheetByName(ABAS.codigos);
+  const existe = sheet.getDataRange().getValues().slice(1).some((row) => String(row[0]) === hash);
+  if (existe) throw new Error('Este código já está cadastrado.');
+  sheet.appendRow([hash, true, new Date(), '']);
+  SpreadsheetApp.flush();
+  return 'Código cadastrado. Apenas o hash foi armazenado.';
+}
+
 function configuracao_() {
   const values = planilha_().getSheetByName(ABAS.configuracao).getDataRange().getValues();
   return Object.fromEntries(values.slice(1).filter((row) => row[0]).map((row) => [String(row[0]), String(row[1])]));
