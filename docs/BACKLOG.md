@@ -2,8 +2,8 @@
 
 | ID | História | Critérios de aceitação | Esforço | Responsável | Status |
 |---|---|---|---|---|---|
-| S1 | Catálogo e UX | 46 registros, busca sem acento, filtros, detalhes, mobile e teclado | M | Equipe | BLOCKED: JSON ausente; estrutura inicial implementada |
-| S2 | Regras e persistência | cálculo, Apps Script/Sheets, modelo B, concorrência e idempotência | G | Equipe | PARCIAL: código escrito; planilha não configurada/testada |
-| S3 | Ranking e liberação | agregados, mínimo 5, empate, CI, Pages e QA mobile | G | Equipe | PARCIAL: ranking/backend escritos; deploy e integração pendentes |
+| S1 | Catálogo e UX | 46 registros oficiais, busca sem acento, filtros, detalhes, navegação por hash e mobile-first | M | Equipe | Implementado no branch; CI desta revisão pendente |
+| S2 | Regras e persistência | cálculo validado no servidor, quatro notas, token hash, modelo B, lock, idempotência e Sheets | G | Equipe | Código Apps Script/HTML Service implementado; planilha e voto real ainda não testados |
+| S3 | Ranking e liberação | agregados públicos, mínimo 5, desempate, CI, Pages e QA mobile | G | Equipe | Ranking e workflow implementados; CI atual, integração Google, deploy e QA pendentes |
 
-P = pequeno, M = médio, G = grande. Sem prazos fictícios. Responsável operacional será definido pela equipe.
+**Esforço:** P = pequeno, M = médio, G = grande. Responsável operacional é a equipe; não há prazos presumidos.
