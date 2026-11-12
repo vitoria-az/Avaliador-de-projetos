@@ -4,7 +4,7 @@ Protótipo acadêmico de participação popular educativa para Web Mobile / Prog
 
 ## Estado desta entrega
 
-Interface React + Vite + TypeScript, cálculo ponderado, formulário, ranking agregado, backend Apps Script/Sheets e documentação implementados na branch feat/universo-if-avalia-mvp. O catálogo oficial **não foi anexado**: src/catalogo.json é um invólucro vazio, sem títulos inventados. Build TypeScript/Vite não foi executado porque o ambiente não conseguiu acessar registry.npmjs.org para instalar dependências. Google Sheets, Pages e teste real de voto ainda não foram configurados.
+Interface React + Vite + TypeScript, cálculo ponderado, formulário, ranking agregado, backend Apps Script/Sheets e documentação implementados na branch feat/universo-if-avalia-mvp. O catálogo oficial **não foi anexado**: src/catalogo.json é um invólucro vazio, sem títulos inventados. O CI do GitHub executou npm ci, typecheck, testes e build com sucesso (Actions #2). Google Sheets e Pages ainda não foram configurados; nenhum voto real foi enviado.
 
 ## Executar localmente
 
@@ -18,7 +18,7 @@ npm run build
 npm run dev
 ```
 
-Substitua src/catalogo.json pelo JSON original. O código aceita array ou objeto com propriedade projetos. Preserve títulos e acentos.
+O workflow cria package-lock.json temporário no runner para inicializar o CI. A equipe deve gerar e commitar um lockfile revisado para builds reprodutíveis. Substitua src/catalogo.json pelo JSON original. O código aceita array ou objeto com propriedade projetos. Preserve títulos e acentos.
 
 ## Regras
 
@@ -32,16 +32,17 @@ Ranking separa modalidades, usa média ponderada, mínimo de cinco avaliações 
 - src/catalogo.json: fonte oficial pendente.
 - backend/Code.gs: Apps Script para Sheets, avaliações e agregados.
 - backend/Index.html: fallback HTML Service com google.script.run se CORS/redirecionamento impedir integração Pages.
-- docs/: auditoria, backlog, configuração Google e QA.
+- .github/workflows/pages.yml: CI e deploy automático somente após push/merge em main.
+- docs/: auditoria, backlog, configuração Google, QA e gates.
 
 **CORS:** não usa no-cors e não considera envio como sucesso. Integração Pages → Apps Script deve ser testada em navegador real. Se falhar, use HTML Service.
 
 ## GitHub Pages
 
-Vite usa base /Avaliador-de-projetos/. Após instalar dependências e gerar package-lock.json, configure workflow com npm ci, typecheck, testes e build; depois Settings → Pages → Source: GitHub Actions. Deploy público não foi habilitado.
+Vite usa base /Avaliador-de-projetos/. O CI foi aprovado, mas deploy não ocorreu porque o PR continua aberto e o job de publicação só executa na main. Após revisão e aprovação do PR, configure Settings → Pages → Source: GitHub Actions. Não houve merge nem publicação.
 
 ## Segurança
 
 Não publique tokens, hashes de produção, IDs de planilha, credenciais ou linhas individuais de avaliação. Planilha privada. Ranking público somente agregado. Sem nome, e-mail, IP, MAC ou fingerprint. LocalStorage não é usado para unicidade.
 
-Consulte docs/AUDITORIA_CATALOGO.md, docs/BACKLOG.md, docs/CONFIGURAR_GOOGLE.md e docs/TESTES_E_QA.md.
+Consulte docs/AUDITORIA_CATALOGO.md, docs/BACKLOG.md, docs/CONFIGURAR_GOOGLE.md, docs/TESTES_E_QA.md e docs/STATUS_GATES.md.
