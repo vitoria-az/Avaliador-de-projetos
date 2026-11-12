@@ -155,6 +155,7 @@ function submitVote(payload) {
       throw new Error('Este identificador de solicitação já foi utilizado.');
     }
 
+    limitarTaxa_(hash);
     const config = configuracao_();
     if (config.votacao_aberta !== 'TRUE') throw new Error('A avaliação está fechada no momento.');
     const projetoExiste = sheetProjetos.getDataRange().getValues().slice(1)
@@ -163,8 +164,6 @@ function submitVote(payload) {
     const codigoAtivo = sheetCodigos.getDataRange().getValues().slice(1)
       .some((row) => String(row[0]) === hash && String(row[1]).toUpperCase() === 'TRUE');
     if (!codigoAtivo) throw new Error('Código não autorizado ou desabilitado.');
-    limitarTaxa_(hash);
-
     const duplicado = votos.some((row) => String(row[2]) === hash && String(row[3]) === projetoId);
     if (duplicado) throw new Error('Este código já avaliou este projeto.');
     const notaFinal = Math.round(notas.reduce((soma, n, i) => soma + n * PESOS[i], 0) * 100) / 100;
