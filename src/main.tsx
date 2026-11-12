@@ -1,14 +1,194 @@
-import React,{useMemo,useState}from'react';import{createRoot}from'react-dom/client';import catalogo from './catalogo.json';import{calcularNota,CRITERIOS,filtrarProjetos,montarRanking,ROTULOS,validarCatalogo}from'./domain';import type{Modalidade,Projeto,AvaliacaoPublica}from'./types';import'./style.css';
-const projetos=validarCatalogo(catalogo),api=import.meta.env.VITE_APPS_SCRIPT_URL as string|undefined;
-function App(){const[aba,setAba]=useState<'projetos'|'avaliar'|'ranking'>('projetos'),[busca,setBusca]=useState(''),[modalidade,setModalidade]=useState<Modalidade>('Mostra Nacional'),[area,setArea]=useState(''),[data,setData]=useState(''),[selecionado,setSelecionado]=useState<Projeto|null>(null),[notas,setNotas]=useState<number[]>([0,0,0,0]),[codigo,setCodigo]=useState(''),[msg,setMsg]=useState(''),[enviando,setEnviando]=useState(false),[ranking,setRanking]=useState<AvaliacaoPublica[]>([]),[erro,setErro]=useState('');
-const filtrados=useMemo(()=>filtrarProjetos(projetos,{busca,modalidade,area,data}),[busca,modalidade,area,data]),areas=[...new Set(projetos.map(p=>p.area_tematica).filter(Boolean))].sort(),datas=[...new Set(projetos.map(p=>p.data).filter(Boolean))].sort(),nota=notas.every(n=>n>0)?calcularNota(notas):null;
-async function carregar(){setErro('');if(!api){setErro('Apps Script ainda não configurado.');return;}try{const r=await fetch(api+'?action=ranking');const j=await r.json();if(!r.ok||!j.ok)throw Error(j.erro||'Falha ao consultar ranking.');setRanking(j.dados||[]);}catch(e){setErro(e instanceof Error?e.message:'Falha ao carregar.');}}
-async function enviar(e:React.FormEvent){e.preventDefault();setMsg('');if(!selecionado||!codigo.trim()||notas.some(n=>!Number.isInteger(n)||n<1||n>5)){setMsg('Preencha o código e os quatro critérios.');return;}if(!api){setMsg('Backend não configurado. A avaliação não foi enviada.');return;}setEnviando(true);try{const r=await fetch(api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'avaliar',id_requisicao:crypto.randomUUID(),codigo:codigo.trim(),id_projeto:selecionado.id,notas})});const j=await r.json();if(!r.ok||!j.ok||!j.recibo)throw Error(j.erro||'Sem recibo confiável.');setMsg('Avaliação registrada. Recibo: '+j.recibo);setCodigo('');setNotas([0,0,0,0]);}catch(e){setMsg(e instanceof Error?e.message:'Falha de comunicação.');}finally{setEnviando(false);}}
-function avaliar(p:Projeto){setSelecionado(p);setNotas([0,0,0,0]);setMsg('');setAba('avaliar');location.hash='avaliar/'+p.id;}
-function detalhes(p:Projeto){setSelecionado(p);setAba('projetos');location.hash='projetos/'+p.id;}
-const ranked=montarRanking(projetos,ranking,modalidade);
-return <div className="app"><header><div className="brand"><b>IF</b><span><strong>Universo IF Avalia</strong><small>Participação popular educativa</small></span></div><span className="tag">PROTÓTIPO ACADÊMICO</span></header><main><section className="hero"><small>IFMA · WEB MOBILE · 2026.2</small><h1>Conheça. Avalie.<br/><i>Participe.</i></h1><p>Uma experiência educativa para conhecer os projetos da Mostra Nacional e da Mostra de Extensão.</p><aside>Este protótipo não representa votação, julgamento ou classificação oficial do Universo IF.</aside></section><nav className="tabs"><button className={aba==='projetos'?'on':''} onClick={()=>setAba('projetos')}>Projetos</button><button className={aba==='avaliar'?'on':''} onClick={()=>setAba('avaliar')}>Avaliar</button><button className={aba==='ranking'?'on':''} onClick={()=>{setAba('ranking');void carregar();}}>Ranking</button></nav>
-{aba==='projetos'&&<section><h2>{selecionado?'Detalhes do projeto':'Projetos'}</h2>{selecionado?<article className="panel"><button className="link" onClick={()=>{setSelecionado(null);location.hash='projetos';}}>← Voltar</button><small className="pill">{selecionado.modalidade}</small><h3>{selecionado.titulo}</h3><p>{selecionado.area_tematica}</p><dl><dt>Data</dt><dd>{selecionado.data}</dd><dt>Horário</dt><dd>{selecionado.inicio} às {selecionado.fim}</dd><dt>Formato</dt><dd>{selecionado.formato||'Informação não disponibilizada na programação'}</dd><dt>Local</dt><dd>{selecionado.local||'Informação não disponibilizada na programação'}</dd></dl><button className="primary" onClick={()=>avaliar(selecionado)}>Avaliar este projeto</button></article>:<><div className="filters"><input placeholder="Buscar pelo título..." aria-label="Buscar pelo título" value={busca} onChange={e=>setBusca(e.target.value)}/><select value={modalidade} onChange={e=>setModalidade(e.target.value as Modalidade)}><option>Mostra Nacional</option><option>Mostra de Extensão</option></select><select value={area} onChange={e=>setArea(e.target.value)}><option value="">Todas as áreas</option>{areas.map(a=><option key={a}>{a}</option>)}</select><select value={data} onChange={e=>setData(e.target.value)}><option value="">Todas as datas</option>{datas.map(d=><option key={d}>{d}</option>)}</select></div>{!projetos.length?<div className="empty"><b>Catálogo oficial pendente</b><p>O JSON com os 46 projetos não foi anexado. Substitua <code>src/catalogo.json</code> pelo arquivo original. Nenhum título foi inventado.</p></div>:!filtrados.length?<div className="empty">Nenhum projeto corresponde aos filtros.</div>:<div className="cards">{filtrados.map(p=><button className="project" key={p.id} onClick={()=>detalhes(p)}><small className="pill">{p.modalidade}</small><h3>{p.titulo}</h3><p>{p.area_tematica}</p><small>{p.data} · {p.inicio}–{p.fim}</small><small>{p.local}</small><b>Ver detalhes ↗</b></button>)}</div>}</>}</section>}
-{aba==='avaliar'&&<section><h2>Avalie uma apresentação</h2>{!selecionado?<div className="empty">Escolha um projeto na aba Projetos.</div>:<form className="panel" onSubmit={enviar}><small className="pill">{selecionado.modalidade}</small><h3>{selecionado.titulo}</h3><label className="field">Código de participação<input type="password" autoComplete="off" value={codigo} onChange={e=>setCodigo(e.target.value)} required/></label>{CRITERIOS.map((c,i)=><fieldset key={c}><legend>{c} <b>{[30,30,25,15][i]}%</b></legend><div className="ratings">{[1,2,3,4,5].map(n=><label key={n}><input type="radio" name={'c'+i} checked={notas[i]===n} onChange={()=>setNotas(v=>v.map((x,j)=>j===i?n:x))}/><span>{n}</span></label>)}</div><small>{notas[i]?ROTULOS[notas[i]]:'Selecione de 1 a 5'}</small></fieldset>)}<div className="score">Prévia ponderada <b>{nota===null?'--':nota.toFixed(2).replace('.',',')}</b></div><p className="hint">Avaliação popular educativa, não nota científica oficial.</p><button className="primary" disabled={enviando||nota===null}>{enviando?'Enviando...':'Confirmar avaliação'}</button>{msg&&<p role="status" className="message">{msg}</p>}</form>}</section>}
-{aba==='ranking'&&<section><h2>Ranking da participação</h2><div className="filters"><select value={modalidade} onChange={e=>{setModalidade(e.target.value as Modalidade);void carregar();}}><option>Mostra Nacional</option><option>Mostra de Extensão</option></select><button className="secondary" onClick={()=>void carregar()}>Atualizar</button></div><p className="hint">Modalidades separadas. Empates: título em ordem alfabética após a média. Mínimo de cinco avaliações válidas para obter posição.</p>{erro&&<div className="empty" role="status">{erro}</div>}{!ranked.length&&!erro&&<div className="empty">Nenhum agregado disponível.</div>}<div className="cards">{ranked.map(x=><article className="panel" key={x.projeto.id}><small className="pill">{x.elegivel?'#'+x.posicao:'Aguardando amostra mínima'}</small><h3>{x.projeto.titulo}</h3><strong className="score-num">{x.elegivel?x.dado?.media_final.toFixed(2).replace('.',','):'--'}</strong><small>{x.dado?.quantidade??0} avaliações válidas</small><small>Médias C1–C4: {x.dado?.medias_criterios?.map(v=>v===null?'--':v.toFixed(2).replace('.',',')).join(' · ')??'--'}</small><small>Atualizado: {x.dado?.atualizado_em?new Date(x.dado.atualizado_em).toLocaleString('pt-BR'):'Sem avaliações'}</small><button className="link" onClick={()=>detalhes(x.projeto)}>Ver projeto →</button></article>)}</div></section>}</main><footer>Universo IF Avalia · IFMA 2026.2 <span>Protótipo acadêmico independente</span></footer><nav className="mobile">{(['projetos','avaliar','ranking'] as const).map(x=><button className={aba===x?'on':''} key={x} onClick={()=>setAba(x)}>{x==='projetos'?'Projetos':x==='avaliar'?'Avaliar':'Ranking'}</button>)}</nav></div>}
-createRoot(document.getElementById('root')!).render(<React.StrictMode><App/></React.StrictMode>);
+import React, { useEffect, useMemo, useState } from 'react';
+import { createRoot } from 'react-dom/client';
+import catalogo from './catalogo.json';
+import { filtrarProjetos, normalizarBusca, validarCatalogo } from './domain';
+import type { Modalidade, Projeto } from './types';
+import './style.css';
+
+const projetos = validarCatalogo(catalogo);
+const appsScriptUrl = (import.meta.env.VITE_APPS_SCRIPT_URL as string | undefined)?.trim() ?? '';
+
+type Aba = 'projetos' | 'avaliar' | 'ranking';
+function linkAppsScript(page: 'avaliar' | 'ranking', id?: string): string | null {
+  if (!appsScriptUrl) return null;
+  try {
+    const url = new URL(appsScriptUrl);
+    url.searchParams.set('page', page);
+    if (id) url.searchParams.set('id', id);
+    else url.searchParams.delete('id');
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+function lerRota(): { aba: Aba; id: string | null } {
+  const rota = window.location.hash.replace(/^#/, '').split('/');
+  const aba = (['projetos', 'avaliar', 'ranking'].includes(rota[0]) ? rota[0] : 'projetos') as Aba;
+  return { aba, id: rota[1] || null };
+}
+function dataPt(data: string): string {
+  const [ano, mes, dia] = data.split('-').map(Number);
+  return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' }).format(new Date(ano, mes - 1, dia));
+}
+
+function App() {
+  const rotaInicial = lerRota();
+  const [aba, setAba] = useState<Aba>(rotaInicial.aba);
+  const [selecionado, setSelecionado] = useState<Projeto | null>(() => projetos.find((p) => p.id === rotaInicial.id) ?? null);
+  const [busca, setBusca] = useState('');
+  const [modalidade, setModalidade] = useState<Modalidade>('Mostra Nacional');
+  const [area, setArea] = useState('');
+  const [data, setData] = useState('');
+
+  useEffect(() => {
+    const sincronizarRota = () => {
+      const rota = lerRota();
+      setAba(rota.aba);
+      setSelecionado(projetos.find((p) => p.id === rota.id) ?? null);
+    };
+    window.addEventListener('hashchange', sincronizarRota);
+    return () => window.removeEventListener('hashchange', sincronizarRota);
+  }, []);
+
+  const filtrados = useMemo(
+    () => filtrarProjetos(projetos, { busca, modalidade, area, data }),
+    [busca, modalidade, area, data]
+  );
+  const areas = useMemo(() => [...new Set(projetos.map((p) => p.area_tematica))].sort((a, b) => a.localeCompare(b, 'pt-BR')), []);
+  const datas = useMemo(() => [...new Set(projetos.map((p) => p.data))].sort(), []);
+  const urlAvaliacao = selecionado ? linkAppsScript('avaliar', selecionado.id) : null;
+  const urlRanking = linkAppsScript('ranking');
+
+  function navegar(proxima: Aba, projeto?: Projeto) {
+    setAba(proxima);
+    setSelecionado(projeto ?? null);
+    const hash = projeto ? `${proxima}/${projeto.id}` : proxima;
+    if (window.location.hash.replace(/^#/, '') !== hash) window.location.hash = hash;
+  }
+
+  return (
+    <div className="app">
+      <header>
+        <a className="brand" href="#projetos" onClick={() => navegar('projetos')}>
+          <b aria-hidden="true">IF</b>
+          <span><strong>Universo IF Avalia</strong><small>Participação popular educativa</small></span>
+        </a>
+        <span className="tag">PROTÓTIPO ACADÊMICO</span>
+      </header>
+
+      <main>
+        <section className="hero">
+          <small>IFMA · WEB MOBILE · 2026.2</small>
+          <h1>Conheça. Avalie.<br /><i>Participe.</i></h1>
+          <p>Explore os projetos da Mostra Nacional e da Mostra de Extensão e registre sua percepção sobre as apresentações.</p>
+          <aside>Este protótipo acadêmico não representa votação, julgamento, nota científica ou ranking oficial do Universo IF.</aside>
+        </section>
+
+        <nav className="tabs" aria-label="Navegação principal">
+          <button className={aba === 'projetos' ? 'on' : ''} aria-current={aba === 'projetos' ? 'page' : undefined} onClick={() => navegar('projetos')}>Projetos</button>
+          <button className={aba === 'avaliar' ? 'on' : ''} aria-current={aba === 'avaliar' ? 'page' : undefined} onClick={() => navegar('avaliar', selecionado ?? undefined)}>Avaliar</button>
+          <button className={aba === 'ranking' ? 'on' : ''} aria-current={aba === 'ranking' ? 'page' : undefined} onClick={() => navegar('ranking')}>Ranking</button>
+        </nav>
+
+        {aba === 'projetos' && (
+          <section aria-labelledby="titulo-projetos">
+            <div className="section-heading"><div><small className="eyebrow">CATÁLOGO OFICIAL DA PROGRAMAÇÃO</small><h2 id="titulo-projetos">{selecionado ? 'Detalhes do projeto' : 'Projetos'}</h2></div><span className="count">{selecionado ? '46 projetos no catálogo' : `${filtrados.length} de 46 projetos`}</span></div>
+            {selecionado ? (
+              <article className="panel detail">
+                <button className="link" onClick={() => navegar('projetos')}>← Voltar ao catálogo</button>
+                <small className="pill">{selecionado.modalidade}</small>
+                <h3>{selecionado.titulo}</h3>
+                <p className="muted">{selecionado.area_tematica}</p>
+                <dl>
+                  <dt>Data</dt><dd>{dataPt(selecionado.data)}</dd>
+                  <dt>Horário</dt><dd>{selecionado.inicio} às {selecionado.fim}</dd>
+                  <dt>Formato</dt><dd>{selecionado.formato || 'Informação não disponibilizada na programação'}</dd>
+                  <dt>Local</dt><dd>{selecionado.local || 'Informação não disponibilizada na programação'}</dd>
+                </dl>
+                <button className="primary" onClick={() => navegar('avaliar', selecionado)}>Avaliar este projeto</button>
+              </article>
+            ) : (
+              <>
+                <div className="filters">
+                  <label className="sr-only" htmlFor="busca">Buscar por título</label>
+                  <input id="busca" placeholder="Buscar pelo título..." value={busca} onChange={(e) => setBusca(e.target.value)} />
+                  <label className="sr-only" htmlFor="modalidade">Modalidade</label>
+                  <select id="modalidade" value={modalidade} onChange={(e) => setModalidade(e.target.value as Modalidade)}>
+                    <option>Mostra Nacional</option><option>Mostra de Extensão</option>
+                  </select>
+                  <label className="sr-only" htmlFor="area">Área temática</label>
+                  <select id="area" value={area} onChange={(e) => setArea(e.target.value)}>
+                    <option value="">Todas as áreas</option>{areas.map((item) => <option key={item} value={item}>{item}</option>)}
+                  </select>
+                  <label className="sr-only" htmlFor="data">Dia</label>
+                  <select id="data" value={data} onChange={(e) => setData(e.target.value)}>
+                    <option value="">Todas as datas</option>{datas.map((item) => <option key={item} value={item}>{dataPt(item)}</option>)}
+                  </select>
+                </div>
+                {filtrados.length === 0 ? (
+                  <div className="empty" role="status"><b>Nenhum projeto encontrado</b><p>Altere os filtros ou tente outra palavra. A busca ignora acentos.</p></div>
+                ) : (
+                  <div className="cards">
+                    {filtrados.map((p) => (
+                      <button className="project" key={p.id} onClick={() => navegar('projetos', p)}>
+                        <small className="pill">{p.modalidade}</small>
+                        <h3>{p.titulo}</h3>
+                        <p>{p.area_tematica}</p>
+                        <small>{dataPt(p.data)} · {p.inicio}–{p.fim}</small>
+                        <small>{p.local}</small>
+                        <b>Ver detalhes <span aria-hidden="true">↗</span></b>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </section>
+        )}
+
+        {aba === 'avaliar' && (
+          <section aria-labelledby="titulo-avaliar">
+            <small className="eyebrow">AVALIAÇÃO EDUCATIVA</small>
+            <h2 id="titulo-avaliar">Avaliar apresentação</h2>
+            {selecionado ? (
+              <article className="panel">
+                <small className="pill">{selecionado.modalidade}</small>
+                <h3>{selecionado.titulo}</h3>
+                <p className="muted">{dataPt(selecionado.data)} · {selecionado.inicio}–{selecionado.fim} · {selecionado.local}</p>
+                <p>O formulário de avaliação abre em uma tela segura do Google Apps Script. Não é necessário criar conta nem fazer login: basta informar o código de participação entregue pela organização.</p>
+                {urlAvaliacao ? <a className="primary-link" href={urlAvaliacao}>Abrir formulário de avaliação</a> : <div className="empty" role="status">A conexão com a avaliação ainda não foi configurada. Depois de implantar o Apps Script, cadastre a variável pública <code>VITE_APPS_SCRIPT_URL</code> nas variáveis do repositório e execute novamente o build.</div>}
+                <p className="hint">Cada código pode avaliar vários projetos, mas apenas uma vez cada projeto. O código é um token de participação, não uma conta pessoal.</p>
+              </article>
+            ) : (
+              <div className="empty"><b>Escolha um projeto primeiro.</b><p>Abra a aba Projetos, selecione uma apresentação e toque em “Avaliar este projeto”.</p><button className="secondary" onClick={() => navegar('projetos')}>Ver projetos</button></div>
+            )}
+          </section>
+        )}
+
+        {aba === 'ranking' && (
+          <section aria-labelledby="titulo-ranking">
+            <small className="eyebrow">RESULTADOS AGREGADOS</small>
+            <h2 id="titulo-ranking">Ranking da participação</h2>
+            <article className="panel">
+              <p>O ranking é público e não exibe códigos de participação nem avaliações individuais. Cada modalidade é classificada separadamente pela média das notas ponderadas válidas.</p>
+              <ul className="rules">
+                <li>Mínimo de cinco avaliações válidas para receber posição.</li>
+                <li>Empates são resolvidos pelo título em ordem alfabética (pt-BR) e, persistindo, pelo ID.</li>
+                <li>Projetos abaixo da amostra mínima continuam visíveis como “Aguardando amostra mínima”.</li>
+              </ul>
+              {urlRanking ? <a className="primary-link" href={urlRanking}>Abrir ranking atualizado</a> : <div className="empty" role="status">O ranking será habilitado depois da implantação do Google Apps Script. Cadastre <code>VITE_APPS_SCRIPT_URL</code> nas variáveis do repositório e execute novamente o build.</div>}
+              <p className="hint">A classificação é indicativa, não é inferência estatística, premiação ou avaliação científica oficial.</p>
+            </article>
+          </section>
+        )}
+      </main>
+
+      <footer><span>Universo IF Avalia · IFMA 2026.2</span><span>Protótipo acadêmico independente</span></footer>
+      <nav className="mobile" aria-label="Navegação inferior">
+        {(['projetos', 'avaliar', 'ranking'] as const).map((item) => <button key={item} className={aba === item ? 'on' : ''} aria-current={aba === item ? 'page' : undefined} onClick={() => navegar(item, item === 'avaliar' ? selecionado ?? undefined : undefined)}>{item === 'projetos' ? 'Projetos' : item === 'avaliar' ? 'Avaliar' : 'Ranking'}</button>)}
+      </nav>
+    </div>
+  );
+}
+
+createRoot(document.getElementById('root')!).render(<React.StrictMode><App /></React.StrictMode>);
