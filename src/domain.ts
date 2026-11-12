@@ -12,7 +12,7 @@ export function calcularNota(notas: number[]): number {
 }
 
 export function normalizarBusca(texto: string): string {
-  return texto.normalize('NFD').replace(/\\p{Diacritic}/gu, '').toLocaleLowerCase('pt-BR').trim();
+  return texto.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLocaleLowerCase('pt-BR').trim();
 }
 
 export function validarCatalogo(dados: unknown): Projeto[] {
