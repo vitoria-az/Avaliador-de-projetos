@@ -1,0 +1,9 @@
+import type {Projeto,AvaliacaoPublica,Modalidade} from './types';
+export const PESOS=[.30,.30,.25,.15] as const;
+export const CRITERIOS=['Criatividade e inovação','Clareza da apresentação','Relevância e impacto','Demonstração e resultados'] as const;
+export const ROTULOS:Record<number,string>={1:'Muito ruim',2:'Ruim',3:'Regular',4:'Bom',5:'Excelente'};
+export function calcularNota(n:number[]):number{if(n.length!==4||n.some(x=>!Number.isInteger(x)||x<1||x>5))throw Error('Informe quatro notas inteiras entre 1 e 5.');return Math.round(n.reduce((s,x,i)=>s+x*PESOS[i],0)*100)/100;}
+export function normalizarBusca(s:string):string{return s.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase('pt-BR').trim();}
+export function validarCatalogo(d:unknown):Projeto[]{const a=Array.isArray(d)?d:(d&&typeof d==='object'&&Array.isArray((d as {projetos?:unknown}).projetos)?(d as {projetos:unknown[]}).projetos:[]);return a as Projeto[];}
+export function filtrarProjetos(p:Projeto[],f:{busca?:string;modalidade?:string;area?:string;data?:string}):Projeto[]{return p.filter(x=>(!f.busca||normalizarBusca(x.titulo).includes(normalizarBusca(f.busca)))&&(!f.modalidade||x.modalidade===f.modalidade)&&(!f.area||x.area_tematica===f.area)&&(!f.data||x.data===f.data));}
+export function montarRanking(p:Projeto[],d:AvaliacaoPublica[],m:Modalidade,min=5){const map=new Map(d.map(x=>[x.id_projeto,x]));return p.filter(x=>x.modalidade===m).map(projeto=>({projeto,dado:map.get(projeto.id),elegivel:(map.get(projeto.id)?.quantidade??0)>=min})).sort((a,b)=>a.elegivel!==b.elegivel?(a.elegivel?-1:1):Math.abs((b.dado?.media_final??0)-(a.dado?.media_final??0))>1e-9?(b.dado?.media_final??0)-(a.dado?.media_final??0):a.projeto.titulo.localeCompare(b.projeto.titulo,'pt-BR')).map((x,i)=>({...x,posicao:x.elegivel?i+1:null}));}
