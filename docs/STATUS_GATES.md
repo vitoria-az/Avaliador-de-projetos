@@ -1,32 +1,40 @@
 # Registro de execução e gates
 
-Data: 12/11/2026.
+Data: 12/11/2026. Estado da execução desta revisão.
 
 | Gate | Status | Evidência / bloqueio |
 |---|---|---|
-| G0 | PASS | Conta GitHub vitoria-az conectada; repo vitoria-az/Avaliador-de-projetos; permissão admin/push; main inicialmente vazio; branch de feature criada. |
-| G1 | BLOCKED | JSON com 46 projetos e PDFs não estavam anexados nem localizados na Library. Nenhum título criado. |
-| G2 | PASS | Interface React/Vite/TypeScript, regras e cinco testes; GitHub Actions #2 aprovou npm ci, typecheck, testes e build. Catálogo real continua condicionado ao G1. |
-| G3 | BLOCKED | Code.gs implementa hash, modelo B, lock, idempotência e agregados; teste offline de regra B passou. Sheets e execução real Apps Script não configuradas. |
-| G4 | BLOCKED_CONNECTED_VOTE | Sem implantação Apps Script, token sintético, recibo real ou readback em Sheets. Nenhum voto foi enviado. |
-| G5 | BLOCKED_DEPLOY | CI aprovado e artefato Pages criado; deploy ignorado em PR. Não houve merge nem publicação; Pages não configurado. |
-| G6 | NOT_RUN | Nenhum agente paralelo ou QA independente. Dispositivos reais não foram testados. |
+| G0 | PASS | Conta GitHub vitoria-az conectada; permissão admin/push; repositório identificado; branch de trabalho e PR #1 existentes. |
+| G1 | PASS | JSON do kit validado: 46 IDs únicos, 24 NAC e 22 EXT, todos os campos obrigatórios e proveniência. As duas programações PDF foram incluídas como fontes por página; nacionais sobrepostos mantidos uma vez. |
+| G2 | BLOCKED | Interface React/Vite/TypeScript e testes de catálogo implementados. Último CI falhou no typecheck por regex de normalização de acentos; correção enviada, aguardando novo CI. Build final ainda não aprovado. |
+| G3 | BLOCKED | Backend Apps Script, HTML Service, hash SHA-256, modelo B, LockService, idempotência e ranking agregado implementados no repositório. Planilha não criada e execução real do Apps Script ainda não testada. |
+| G4 | BLOCKED_CONNECTED_VOTE | Nenhum teste público real com recibo e readback no Sheets. Nenhum voto de produção enviado. |
+| G5 | BLOCKED_DEPLOY | PR #1 aberto e não integrado. GitHub Pages não publicado nem verificado. |
+| G6 | NOT_RUN | Nenhum agente paralelo foi usado; revisão independente e teste em dispositivos reais continuam pendentes. |
 
-## Decisões
+## Repositório e revisão
 
-- Repositório inicialmente vazio. Commit inicial README na main para habilitar a branch; trabalho subsequente isolado na branch de feature.
-- PR #1 aberto como Draft; nenhum merge ou publicação.
-- Integração Google Drive/Sheets desabilitada por política administrativa; nenhum recurso Google criado.
-- Nenhum token, código válido ou dado pessoal criado ou publicado.
-- Referência didática consultada somente para leitura: aulas 06 (navegação/formulários) e 07 (estado/filtros/Sheets) em thalesvalente/teaching-mobile. Nenhum arquivo do professor alterado.
-- Nenhum agente paralelo foi usado; QA independente permanece pendente.
-- GitHub Actions #2 (commit 1681104b0f24d39ced2ede3d7f727c1d86db8f46) terminou SUCCESS: npm ci, typecheck, tests, build e artifact upload. Deploy job SKIPPED no evento pull_request.
+- Repositório: https://github.com/vitoria-az/Avaliador-de-projetos
+- Branch de implementação: `feat/universo-if-avalia-mvp`
+- Pull request: https://github.com/vitoria-az/Avaliador-de-projetos/pull/1
+- A branch `main` contém apenas o README inicial; os arquivos da aplicação estão na branch de feature e só aparecerão em `main` depois que o PR for revisado e integrado.
+- Nenhum merge, deploy ou abertura pública de votação foi realizado.
 
-## Próximos passos
+## Decisões e limites
 
-1. Anexar universo_if_catalogo_46_projetos_v1.0.json e PDFs, ou ao menos o JSON original.
-2. Gerar e commitar package-lock.json revisado.
-3. Revisar e aprovar PR; não fazer merge/publicação sem autorização.
-4. Configurar Sheets/Apps Script em conta da equipe, com acesso anônimo somente se a política institucional autorizar.
-5. Aprovar e executar voto sintético de teste; conferir recibo e linha privada.
-6. Configurar Pages após merge aprovado; QA independente em smartphone.
+- O JSON canônico e os PDFs vieram no kit anexado nesta conversa. Os campos principais foram comparados nos 46 registros; nenhuma divergência de título, modalidade, área, data, horário, formato ou local foi encontrada.
+- O catálogo guarda `fontes` em objetos com arquivo e página e identifica a conferência documental.
+- Nenhum token de produção, código válido, planilha ou dado pessoal foi criado/publicado.
+- A integração Google não foi feita por esta sessão; os passos estão em `docs/CONFIGURAR_GOOGLE.md`.
+- O GitHub Actions anterior aprovado corresponde à versão antiga do branch; após alterações recentes, a execução mais recente falhou no typecheck. Não usar o CI antigo como evidência de aprovação desta revisão.
+- Nenhum agente externo/paralelo ou QA independente foi simulado.
+
+## Próximas ações necessárias
+
+1. Corrigir e aprovar CI no branch.
+2. Revisar e integrar o PR #1 à `main` com aprovação da equipe.
+3. Configurar a planilha privada e Apps Script conforme `docs/CONFIGURAR_GOOGLE.md`.
+4. Implantar Apps Script com acesso anônimo apenas se a política institucional permitir.
+5. Configurar Pages → Source: GitHub Actions após integrar o PR.
+6. Testar em janela anônima e telefone: ranking, envio, recibo, readback e bloqueio da repetição.
+7. Fazer QA independente dos fluxos, dos PDFs e da responsividade.
