@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import catalogo from './catalogo.json';
-import { filtrarProjetos, normalizarBusca, validarCatalogo } from './domain';
+import { filtrarProjetos, validarCatalogo } from './domain';
 import type { Modalidade, Projeto } from './types';
 import './style.css';
 
