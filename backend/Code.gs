@@ -13,6 +13,10 @@ function planilha_() {
   return SpreadsheetApp.openById(id);
 }
 
+function setupSheets() {
+  return setupSheets_();
+}
+
 function setupSheets_() {
   const ss = planilha_();
   Object.keys(ABAS).forEach((chave) => {
@@ -28,6 +32,10 @@ function setupSheets_() {
   [['votacao_aberta', 'FALSE'], ['minimo_ranking', '5'], ['versao_catalogo', '1.0']]
     .forEach((linha) => { if (!existentes.includes(linha[0])) configuracao.appendRow(linha); });
   return 'Abas e configurações básicas verificadas.';
+}
+
+function importarProjetos() {
+  return importarProjetos_();
 }
 
 function importarProjetos_() {
