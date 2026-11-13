@@ -16,6 +16,9 @@ function linkAppsScript(page: 'avaliar' | 'ranking', id?: string): string | null
     url.searchParams.set('page', page);
     if (id) url.searchParams.set('id', id);
     else url.searchParams.delete('id');
+    // Prefer the first Google account in multi-account mobile sessions.
+    // The Apps Script web app remains public; this only avoids account-slot routing conflicts.
+    url.searchParams.set('authuser', '0');
     return url.toString();
   } catch {
     return null;
@@ -156,7 +159,7 @@ function App() {
                 <h3>{selecionado.titulo}</h3>
                 <p className="muted">{dataPt(selecionado.data)} · {selecionado.inicio}–{selecionado.fim} · {selecionado.local}</p>
                 <p>O formulário de avaliação abre em uma tela segura do Google Apps Script. Não é necessário criar conta nem fazer login: basta informar o código de participação entregue pela organização.</p>
-                {urlAvaliacao ? <a className="primary-link" href={urlAvaliacao}>Abrir formulário de avaliação</a> : <div className="empty" role="status">A conexão com a avaliação ainda não foi configurada. Depois de implantar o Apps Script, cadastre a variável pública <code>VITE_APPS_SCRIPT_URL</code> nas variáveis do repositório e execute novamente o build.</div>}
+                {urlAvaliacao ? <a className="primary-link" href={urlAvaliacao} target="_blank" rel="noopener noreferrer">Abrir formulário de avaliação</a> : <div className="empty" role="status">A conexão com a avaliação ainda não foi configurada. Depois de implantar o Apps Script, cadastre a variável pública <code>VITE_APPS_SCRIPT_URL</code> nas variáveis do repositório e execute novamente o build.</div>}
                 <p className="hint">Cada código pode avaliar vários projetos, mas apenas uma vez cada projeto. O código é um token de participação, não uma conta pessoal.</p>
               </article>
             ) : (
@@ -176,7 +179,7 @@ function App() {
                 <li>Empates são resolvidos pelo título em ordem alfabética (pt-BR) e, persistindo, pelo ID.</li>
                 <li>Projetos abaixo da amostra mínima continuam visíveis como “Aguardando amostra mínima”.</li>
               </ul>
-              {urlRanking ? <a className="primary-link" href={urlRanking}>Abrir ranking atualizado</a> : <div className="empty" role="status">O ranking será habilitado depois da implantação do Google Apps Script. Cadastre <code>VITE_APPS_SCRIPT_URL</code> nas variáveis do repositório e execute novamente o build.</div>}
+              {urlRanking ? <a className="primary-link" href={urlRanking} target="_blank" rel="noopener noreferrer">Abrir ranking atualizado</a> : <div className="empty" role="status">O ranking será habilitado depois da implantação do Google Apps Script. Cadastre <code>VITE_APPS_SCRIPT_URL</code> nas variáveis do repositório e execute novamente o build.</div>}
               <p className="hint">A classificação é indicativa, não é inferência estatística, premiação ou avaliação científica oficial.</p>
             </article>
           </section>
