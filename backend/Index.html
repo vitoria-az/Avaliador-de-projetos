@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Universo IF Avalia</title>
+  <style>
+    :root{font-family:Arial,sans-serif;color:#182744;background:#f4f6fa;font-synthesis:none}
+    *{box-sizing:border-box}body{margin:0;min-width:320px}header,main,footer{max-width:880px;margin:auto;padding:20px}
+    header{padding-top:28px;padding-bottom:12px}h1{font-size:clamp(26px,5vw,38px);margin:0 0 8px}h2{font-size:22px;margin:0 0 18px}
+    .sub,.hint,.muted{color:#68758c;line-height:1.6;font-size:13px}
+    .banner{background:#e9eef6;border-left:4px solid #6e8bb6;padding:13px 15px;border-radius:8px;font-size:13px;line-height:1.5}
+    section{background:#fff;border:1px solid #e0e6ef;border-radius:16px;padding:22px;margin:14px 0;box-shadow:0 7px 24px #18274408}
+    label{display:block;font-size:13px;font-weight:700;margin:14px 0 7px}
+    input[type=password],select{display:block;width:100%;min-height:46px;border:1px solid #cfd7e4;border-radius:9px;padding:10px 12px;font:inherit;background:#fff;color:#182744}
+    fieldset{border:0;border-top:1px solid #e8edf3;padding:16px 0 8px;margin:0}legend{font-size:14px;font-weight:700;width:100%;padding-top:10px}
+    .weight{float:right;color:#74829a;font-size:12px}.choices{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+    .choice{display:flex;align-items:center;gap:6px;border:1px solid #d5dce7;border-radius:9px;padding:9px 13px;cursor:pointer;min-height:44px}
+    .choice:has(input:checked){background:#1d355f;color:white;border-color:#1d355f}
+    input:focus-visible,button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid #90add9;outline-offset:3px}
+    button,.button{display:inline-flex;justify-content:center;align-items:center;min-height:46px;border:0;border-radius:9px;padding:12px 18px;background:#1c3158;color:#fff;font:700 14px Arial;text-decoration:none;cursor:pointer}
+    button:disabled{opacity:.5;cursor:not-allowed}.score{display:flex;justify-content:space-between;background:#eff3f8;border-radius:10px;padding:15px;margin:16px 0;font-weight:700}
+    #mensagem{background:#eef3f8;padding:13px;border-radius:9px;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+    .erro{background:#fff0ed!important;color:#8c2a1d}.sucesso{background:#eaf6ed!important;color:#1c6131}
+    .ranking-item{border-top:1px solid #e8edf3;padding:18px 0}.ranking-head{display:flex;justify-content:space-between;gap:12px;align-items:center}
+    .ranking-item h3{font-size:16px;line-height:1.4;margin:7px 0}.badge{font-size:11px;font-weight:700;border-radius:30px;padding:7px 10px;background:#eaf0f7;color:#3d5474}
+    .media{font-size:24px;font-weight:700;color:#1d355f;white-space:nowrap}.criterios{font-size:12px;line-height:1.8;color:#66748a}
+    .ranking-item a{color:#315988;font-size:13px}.hidden{display:none!important}footer{font-size:11px;color:#8590a1;padding-bottom:30px}
+    @media(max-width:520px){header,main,footer{padding-left:14px;padding-right:14px}section{padding:17px}.ranking-head{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Universo IF Avalia</h1>
+  <p class="sub">Participação popular educativa · IFMA 2026.2</p>
+  <div class="banner">Protótipo de atividade acadêmica. Não é votação, julgamento, nota científica ou ranking oficial do Universo IF. Não é necessário criar conta ou fazer login.</div>
+</header>
+<main>
+  <section id="tela-avaliar" class="hidden">
+    <h2>Avaliar apresentação</h2>
+    <p id="projeto-titulo" class="sub">Carregando projeto...</p>
+    <p id="projeto-dados" class="muted"></p>
+    <form id="formulario">
+      <label for="codigo">Código de participação</label>
+      <input id="codigo" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" minlength="32" maxlength="128" required>
+      <p class="hint">O código é um token de participação emitido pela organização, não uma conta pessoal. Um mesmo código pode avaliar vários projetos, mas não repetir o mesmo projeto.</p>
+      <div id="criterios"></div>
+      <div class="score"><span>Prévia da nota ponderada</span><strong id="previa">--</strong></div>
+      <button id="enviar" type="submit">Confirmar avaliação</button>
+    </form>
+    <p id="mensagem" role="status" aria-live="polite">Preencha o código e os quatro critérios para continuar.</p>
+  </section>
+  <section id="tela-ranking" class="hidden">
+    <h2>Ranking da participação</h2>
+    <p class="hint">As modalidades são classificadas separadamente pela média das notas ponderadas válidas. Projetos com menos de cinco avaliações ficam aguardando amostra mínima. Empates: título em ordem alfabética (pt-BR) e, persistindo, ID.</p>
+    <label for="modalidade">Modalidade</label>
+    <select id="modalidade"><option>Mostra Nacional</option><option>Mostra de Extensão</option></select>
+    <p class="muted" id="atualizacao">Carregando agregados...</p>
+    <div id="lista-ranking"></div>
+  </section>
+</main>
+<footer>Os resultados são indicativos e não representam premiação nem avaliação científica oficial.</footer>
+<script>
+const PAGINA = <?!= jsonSeguro_(paginaInicial) ?>;
+const PROJETO_ID = <?!= jsonSeguro_(projetoInicial) ?>;
+const PAGINA_PROJETOS = 'https://vitoria-az.github.io/Avaliador-de-projetos/#projetos/';
+const CRITERIOS = ['Criatividade e inovação','Clareza da apresentação','Relevância e impacto','Demonstração e resultados'];
+const PESOS = [0.30,0.30,0.25,0.15];
+let requisicaoPendente = null;
+let assinaturaPendente = '';
+
+function mostrarMensagem(texto, tipo) {
+  const el = document.getElementById('mensagem');
+  el.textContent = texto;
+  el.className = tipo || '';
+}
+function desenharCriterios() {
+  const raiz = document.getElementById('criterios');
+  CRITERIOS.forEach((criterio, i) => {
+    const field = document.createElement('fieldset');
+    const legend = document.createElement('legend');
+    legend.textContent = criterio;
+    const peso = document.createElement('span');
+    peso.className = 'weight';
+    peso.textContent = Math.round(PESOS[i] * 100) + '%';
+    legend.appendChild(peso);
+    field.appendChild(legend);
+    const choices = document.createElement('div');
+    choices.className = 'choices';
+    [1,2,3,4,5].forEach((n) => {
+      const label = document.createElement('label');
+      label.className = 'choice';
+      const radio = document.createElement('input');
+      radio.type = 'radio'; radio.name = 'c' + i; radio.value = String(n); radio.required = true;
+      radio.addEventListener('change', atualizarPrevia);
+      const texto = document.createElement('span'); texto.textContent = String(n);
+      label.append(radio, texto); choices.appendChild(label);
+    });
+    field.appendChild(choices);
+    const hint = document.createElement('p'); hint.className = 'hint';
+    hint.textContent = '1 Muito ruim · 2 Ruim · 3 Regular · 4 Bom · 5 Excelente';
+    field.appendChild(hint); raiz.appendChild(field);
+  });
+}
+function notasAtuais() {
+  return CRITERIOS.map((_, i) => {
+    const selecionada = document.querySelector('input[name="c' + i + '"]:checked');
+    return selecionada ? Number(selecionada.value) : 0;
+  });
+}
+function atualizarPrevia() {
+  const notas = notasAtuais();
+  const valor = notas.every((n) => Number.isInteger(n) && n >= 1 && n <= 5)
+    ? notas.reduce((soma, n, i) => soma + n * PESOS[i], 0)
+    : null;
+  document.getElementById('previa').textContent = valor === null ? '--' : valor.toFixed(2).replace('.', ',');
+}
+function carregarProjeto() {
+  if (!PROJETO_ID) { mostrarMensagem('Volte ao catálogo e escolha um projeto para avaliar.', 'erro'); return; }
+  google.script.run.withSuccessHandler((p) => {
+    if (!p) { mostrarMensagem('Projeto não encontrado no catálogo. Volte à lista de projetos.', 'erro'); return; }
+    document.getElementById('projeto-titulo').textContent = p.titulo;
+    document.getElementById('projeto-dados').textContent = p.modalidade + ' · ' + p.data + ' · ' + p.inicio + '–' + p.fim + ' · ' + p.local;
+  }).withFailureHandler((e) => mostrarMensagem(e.message || 'Falha ao carregar projeto.', 'erro')).getProjetoPublico(PROJETO_ID);
+}
+function enviarAvaliacao(event) {
+  event.preventDefault();
+  const token = document.getElementById('codigo').value.trim();
+  const notas = notasAtuais();
+  if (token.length < 32 || notas.some((n) => !Number.isInteger(n) || n < 1 || n > 5)) {
+    mostrarMensagem('Informe um código válido e selecione uma nota de 1 a 5 para cada critério.', 'erro'); return;
+  }
+  const assinatura = JSON.stringify([PROJETO_ID, token, notas]);
+  if (assinatura !== assinaturaPendente) {
+    assinaturaPendente = assinatura;
+    if (!window.crypto || !crypto.getRandomValues) { mostrarMensagem('Este navegador não oferece geração segura de identificador. Atualize o navegador e tente novamente.', 'erro'); return; }
+    requisicaoPendente = crypto.randomUUID ? crypto.randomUUID() : criarUuidSeguro();
+  }
+  const botao = document.getElementById('enviar');
+  botao.disabled = true; botao.textContent = 'Enviando...';
+  mostrarMensagem('Aguardando confirmação do servidor. Não feche esta tela.', '');
+  google.script.run.withSuccessHandler((resposta) => {
+    botao.disabled = false; botao.textContent = 'Confirmar avaliação';
+    if (!resposta || !resposta.ok || !resposta.recibo) {
+      mostrarMensagem('O servidor não confirmou a gravação. Nenhum sucesso foi presumido.', 'erro'); return;
+    }
+    mostrarMensagem('Avaliação registrada. Guarde este recibo: ' + resposta.recibo + (resposta.repetido ? ' (confirmação recuperada)' : ''), 'sucesso');
+    document.getElementById('codigo').value = '';
+    requisicaoPendente = null; assinaturaPendente = '';
+  }).withFailureHandler((erro) => {
+    botao.disabled = false; botao.textContent = 'Tentar novamente';
+    mostrarMensagem((erro && erro.message ? erro.message : 'Não foi possível confirmar com o servidor.') + ' A mesma solicitação será reutilizada na retentativa.', 'erro');
+  }).submitVote({id_requisicao:requisicaoPendente,codigo:token,id_projeto:PROJETO_ID,notas:notas});
+}
+function criarUuidSeguro() {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40; bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  return hex.slice(0,8)+'-'+hex.slice(8,12)+'-'+hex.slice(12,16)+'-'+hex.slice(16,20)+'-'+hex.slice(20);
+}
+function atualizarRanking() {
+  const lista = document.getElementById('lista-ranking');
+  const modalidade = document.getElementById('modalidade').value;
+  lista.textContent = 'Carregando...';
+  google.script.run.withSuccessHandler((resposta) => {
+    lista.textContent = '';
+    const itens = (resposta.dados || []).filter((p) => p.modalidade === modalidade);
+    itens.sort((a,b) => {
+      const ea = a.quantidade >= resposta.minimo, eb = b.quantidade >= resposta.minimo;
+      if (ea !== eb) return ea ? -1 : 1;
+      if (ea && a.media_final !== b.media_final) return (b.media_final || 0) - (a.media_final || 0);
+      return a.titulo.localeCompare(b.titulo, 'pt-BR') || a.id_projeto.localeCompare(b.id_projeto);
+    });
+    let posicao = 0;
+    itens.forEach((p) => {
+      const elegivel = p.quantidade >= resposta.minimo;
+      const card = document.createElement('article'); card.className = 'ranking-item';
+      const cabecalho = document.createElement('div'); cabecalho.className = 'ranking-head';
+      const badge = document.createElement('span'); badge.className = 'badge';
+      badge.textContent = elegivel ? '#' + (++posicao) : 'Aguardando amostra mínima';
+      const media = document.createElement('strong'); media.className = 'media';
+      media.textContent = elegivel ? Number(p.media_final).toFixed(2).replace('.', ',') : '--';
+      cabecalho.append(badge, media); card.appendChild(cabecalho);
+      const titulo = document.createElement('h3'); titulo.textContent = p.titulo; card.appendChild(titulo);
+      const quantidade = document.createElement('p'); quantidade.className = 'muted';
+      quantidade.textContent = p.quantidade + ' avaliações válidas'; card.appendChild(quantidade);
+      const criterios = document.createElement('p'); criterios.className = 'criterios';
+      const nomes = ['Criatividade','Clareza','Relevância','Demonstração'];
+      criterios.textContent = nomes.map((nome,i) => nome + ': ' + (p.medias_criterios[i] == null ? '—' : Number(p.medias_criterios[i]).toFixed(2).replace('.', ','))).join(' · ');
+      card.appendChild(criterios);
+      const atualizado = document.createElement('p'); atualizado.className = 'muted';
+      atualizado.textContent = p.atualizado_em ? 'Atualizado em ' + new Date(p.atualizado_em).toLocaleString('pt-BR') : 'Sem avaliações';
+      card.appendChild(atualizado);
+      const link = document.createElement('a'); link.href = PAGINA_PROJETOS + encodeURIComponent(p.id); link.textContent = 'Ver detalhes do projeto'; card.appendChild(link);
+      lista.appendChild(card);
+    });
+    document.getElementById('atualizacao').textContent = 'Dados agregados atualizados em ' + new Date(resposta.atualizado_em).toLocaleString('pt-BR') + ' · amostra mínima: ' + resposta.minimo + '.';
+  }).withFailureHandler((e) => {
+    lista.textContent = e.message || 'Não foi possível carregar o ranking.';
+    document.getElementById('atualizacao').textContent = 'Falha ao atualizar.';
+  }).getPublicRanking();
+}
+if (PAGINA === 'ranking') {
+  document.getElementById('tela-ranking').classList.remove('hidden');
+  document.getElementById('modalidade').addEventListener('change', atualizarRanking);
+  atualizarRanking();
+} else {
+  document.getElementById('tela-avaliar').classList.remove('hidden');
+  desenharCriterios(); carregarProjeto();
+  document.getElementById('formulario').addEventListener('submit', enviarAvaliacao);
+}
+</script>
+</body>
+</html>
