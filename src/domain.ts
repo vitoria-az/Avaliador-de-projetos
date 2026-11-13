@@ -12,7 +12,7 @@ export function calcularNota(notas: number[]): number {
 }
 
 export function normalizarBusca(texto: string): string {
-  return texto.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLocaleLowerCase('pt-BR').trim();
+  return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').trim();
 }
 
 export function validarCatalogo(dados: unknown): Projeto[] {
@@ -31,7 +31,7 @@ export function validarCatalogo(dados: unknown): Projeto[] {
     if (!Array.isArray(p.fontes) || p.fontes.length === 0 || p.fontes.some((f) => !f.arquivo || !Number.isInteger(f.pagina) || f.pagina < 1)) {
       throw new Error('Proveniência inválida no projeto: ' + p.id);
     }
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(p.data)) throw new Error('Data inválida no projeto: ' + p.id);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(p.data)) throw new Error('Data inválida no projeto: ' + p.id);
   }
   const nacionais = lista.filter((p) => p.modalidade === 'Mostra Nacional');
   const extensao = lista.filter((p) => p.modalidade === 'Mostra de Extensão');
