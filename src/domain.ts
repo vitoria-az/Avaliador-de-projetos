@@ -16,7 +16,7 @@ export const ROTULOS: Record<number, string> = {
 };
 
 function dataValida(data: string): boolean {
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(data)) return false;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) return false;
 
   const [ano, mes, dia] = data.split('-').map(Number);
   if (ano < 1 || ano > 9999 || mes < 1 || mes > 12 || dia < 1 || dia > 31) {
@@ -35,7 +35,7 @@ function dataValida(data: string): boolean {
 }
 
 function horaValida(hora: string): boolean {
-  if (!/^\\d{2}:\\d{2}$/.test(hora)) return false;
+  if (!/^\d{2}:\d{2}$/.test(hora)) return false;
 
   const [horas, minutos] = hora.split(':').map(Number);
   return horas >= 0 && horas <= 23 && minutos >= 0 && minutos <= 59;
@@ -58,7 +58,7 @@ export function calcularNota(notas: number[]): number {
 export function normalizarBusca(texto: string): string {
   return texto
     .normalize('NFD')
-    .replace(/[\\u0300-\\u036f]/g, '')
+    .replace(/[\u0300-\u036f]/g, '')
     .toLocaleLowerCase('pt-BR')
     .trim();
 }
