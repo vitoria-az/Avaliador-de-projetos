@@ -4,11 +4,11 @@
 
 ## Estado atual
 
-A implementação está na branch `feat/universo-if-avalia-mvp`, no [PR #1](https://github.com/vitoria-az/Avaliador-de-projetos/pull/1). O catálogo canônico contém **46 projetos únicos** (24 Mostra Nacional e 22 Mostra de Extensão), com título, horário, local e proveniência preservados. Consulte [auditoria do catálogo](docs/AUDITORIA_CATALOGO.md).
+A implementação principal foi integrada à branch `main` pelo [PR #1](https://github.com/vitoria-az/Avaliador-de-projetos/pull/1). O catálogo canônico contém **46 projetos únicos** (24 Mostra Nacional e 22 Mostra de Extensão), com título, horário, local e proveniência preservados. Consulte [auditoria do catálogo](docs/AUDITORIA_CATALOGO.md).
 
 A interface pública usa React + Vite + TypeScript e GitHub Pages. O formulário de avaliação e o ranking dinâmico usam HTML Service do Google Apps Script com `google.script.run`, para não depender de CORS em um POST direto do Pages. A persistência usa Google Sheets privado.
 
-**Ainda não está publicado/homologado:** planilha e Apps Script precisam ser criados na conta da equipe, o teste real de recibo/readback não foi executado e o PR não foi integrado à `main`. O CI mais recente ainda precisa ser confirmado após as correções desta versão. Não há votos de produção nem tokens reais no repositório.
+**Ainda não está publicado/homologado para votação:** a planilha e o Apps Script precisam ser configurados na conta da equipe; CI atual, publicação Pages e teste real de recibo/readback precisam ser confirmados. O [PR #2](https://github.com/vitoria-az/Avaliador-de-projetos/pull/2) propõe uma correção de abertura do Apps Script no celular e continua separado da main, aguardando revisão/testes. Não há votos de produção nem tokens reais no repositório.
 
 ## Executar localmente
 
@@ -40,15 +40,17 @@ O workflow atualmente cria um lockfile temporário no runner para executar `npm 
 - `src/`: React, estilos, tipos, regras de domínio e catálogo versionado.
 - `backend/Code.gs`: operações do Google Sheets, hash SHA-256, validação, limitação de taxa, LockService, idempotência e agregação pública.
 - `backend/Index.html`: telas de avaliação e ranking servidas pelo HTML Service via `google.script.run`.
-- `.github/workflows/pages.yml`: CI e publicação Pages após integração em `main`.
+- `.github/workflows/pages.yml`: CI e publicação Pages após push na `main`, conforme configuração do repositório.
 - `docs/`: auditoria, backlog, configuração Google, testes/QA e gates.
 
 ## Configurar Google
 
 Siga [docs/CONFIGURAR_GOOGLE.md](docs/CONFIGURAR_GOOGLE.md). A planilha deve permanecer privada; somente agregados são exibidos publicamente. Não coloque tokens, hashes de produção, IDs de planilha ou credenciais no GitHub.
 
-## Publicação
+## Publicação e liberação
 
-A equipe deve revisar e aprovar o PR #1, integrá-lo à `main`, configurar GitHub Pages → Source: GitHub Actions e concluir os testes descritos em [docs/TESTES_E_QA.md](docs/TESTES_E_QA.md). Não habilite acesso anônimo do Apps Script sem confirmar que a conta e a política institucional permitem.
+A implementação principal já está na `main`; não é necessário reabrir o PR #1. A equipe ainda precisa executar/confirmar CI, revisar e testar o PR #2, configurar GitHub Pages → Source: GitHub Actions, criar a planilha privada e implantar o Apps Script conforme os documentos de configuração e QA.
 
-Consulte também [docs/STATUS_GATES.md](docs/STATUS_GATES.md).
+Não habilite acesso anônimo do Apps Script sem confirmar que a conta e a política institucional permitem. Mantenha `votacao_aberta = FALSE` até concluir os testes ponta a ponta e a homologação.
+
+Consulte [docs/STATUS_GATES.md](docs/STATUS_GATES.md), [docs/BACKLOG.md](docs/BACKLOG.md) e [docs/TESTES_E_QA.md](docs/TESTES_E_QA.md).
