@@ -1,40 +1,40 @@
 # Registro de execução e gates
 
-Data: 12/11/2026. Estado da execução desta revisão.
+Data: 14/11/2026. Estado verificado no repositório.
 
 | Gate | Status | Evidência / bloqueio |
 |---|---|---|
-| G0 | PASS | Conta GitHub vitoria-az conectada; permissão admin/push; repositório identificado; branch de trabalho e PR #1 existentes. |
-| G1 | PASS | JSON do kit validado: 46 IDs únicos, 24 NAC e 22 EXT, todos os campos obrigatórios e proveniência. As duas programações PDF foram incluídas como fontes por página; nacionais sobrepostos mantidos uma vez. |
-| G2 | BLOCKED | Interface React/Vite/TypeScript e testes de catálogo implementados. Último CI falhou no typecheck por regex de normalização de acentos; correção enviada, aguardando novo CI. Build final ainda não aprovado. |
-| G3 | BLOCKED | Backend Apps Script, HTML Service, hash SHA-256, modelo B, LockService, idempotência e ranking agregado implementados no repositório. Planilha não criada e execução real do Apps Script ainda não testada. |
-| G4 | BLOCKED_CONNECTED_VOTE | Nenhum teste público real com recibo e readback no Sheets. Nenhum voto de produção enviado. |
-| G5 | BLOCKED_DEPLOY | PR #1 aberto e não integrado. GitHub Pages não publicado nem verificado. |
-| G6 | NOT_RUN | Nenhum agente paralelo foi usado; revisão independente e teste em dispositivos reais continuam pendentes. |
+| G0 | PASS | Repositório GitHub conectado e branch principal identificada. |
+| G1 | PASS | Catálogo versionado com 46 projetos únicos: 24 Mostra Nacional e 22 Mostra de Extensão, com proveniência por arquivo/página. |
+| G2 | PENDENTE_CI | Aplicação React/Vite/TypeScript, catálogo e testes estão na main. A correção de regex/datas foi commitada em 13/11. Não há resultado de Actions/status checks disponível nesta verificação; executar e confirmar catalog:check, typecheck, testes e build. |
+| G3 | BLOQUEADO_GOOGLE | Backend Apps Script e HTML Service estão versionados. Planilha real, propriedades do script e implantação do Web App ainda dependem da conta da equipe. |
+| G4 | BLOQUEADO_TESTE_REAL | Não há evidência de teste real com recibo, readback no Sheets e idempotência. Nenhum voto de produção deve ser enviado. |
+| G5 | PENDENTE_PUBLICACAO | PR #1 foi integrado à main em 13/11. GitHub Pages ainda precisa ser verificado/configurado e o site publicado confirmado. PR #2 permanece separado, aguardando teste mobile. |
+| G6 | NOT_RUN | QA independente e testes em dispositivos físicos ainda não foram comprovados. |
 
-## Repositório e revisão
+## Estado do GitHub
 
 - Repositório: https://github.com/vitoria-az/Avaliador-de-projetos
-- Branch de implementação: `feat/universo-if-avalia-mvp`
-- Pull request: https://github.com/vitoria-az/Avaliador-de-projetos/pull/1
-- A branch `main` contém apenas o README inicial; os arquivos da aplicação estão na branch de feature e só aparecerão em `main` depois que o PR for revisado e integrado.
-- Nenhum merge, deploy ou abertura pública de votação foi realizado.
+- PR #1: integrado à main em 13/11/2026.
+- Correção da validação de datas e normalização da busca: commit dd2ad99 na main.
+- PR #2: https://github.com/vitoria-az/Avaliador-de-projetos/pull/2 — branch fix/mobile-apps-script-account-routing, um commit à frente da main; não considerar integrado até confirmar o merge.
+- A consulta atual não retornou workflow runs/status checks para o commit corrigido. Isso não significa aprovação nem falha: o CI precisa ser executado e verificado no GitHub Actions.
 
-## Decisões e limites
+## Ações restantes
 
-- O JSON canônico e os PDFs vieram no kit anexado nesta conversa. Os campos principais foram comparados nos 46 registros; nenhuma divergência de título, modalidade, área, data, horário, formato ou local foi encontrada.
-- O catálogo guarda `fontes` em objetos com arquivo e página e identifica a conferência documental.
-- Nenhum token de produção, código válido, planilha ou dado pessoal foi criado/publicado.
-- A integração Google não foi feita por esta sessão; os passos estão em `docs/CONFIGURAR_GOOGLE.md`.
-- O GitHub Actions anterior aprovado corresponde à versão antiga do branch; após alterações recentes, a execução mais recente falhou no typecheck. Não usar o CI antigo como evidência de aprovação desta revisão.
-- Nenhum agente externo/paralelo ou QA independente foi simulado.
+1. Executar/confirmar CI na main: npm run catalog:check, npm run typecheck, npm test e npm run build.
+2. Revisar PR #2 e testar o fluxo no Chrome Android com várias contas Google conectadas e no desktop; integrar somente após validação.
+3. Na conta da equipe, criar a planilha privada, configurar Apps Script e propriedades conforme docs/CONFIGURAR_GOOGLE.md.
+4. Executar setupSheets() e importarProjetos(); conferir os 46 registros.
+5. Implantar o Apps Script somente com permissões permitidas pela instituição e configurar VITE_APPS_SCRIPT_URL nas variáveis do repositório.
+6. Configurar/verificar GitHub Pages com Source: GitHub Actions e confirmar a URL publicada.
+7. Com votação fechada, executar teste sintético de envio, recibo, readback, reenvio idempotente e concorrência.
+8. Fazer QA responsivo/acessível nos viewports 320, 375, 768 e 1280 px e em dispositivos reais.
 
-## Próximas ações necessárias
+## Segurança e liberação
 
-1. Corrigir e aprovar CI no branch.
-2. Revisar e integrar o PR #1 à `main` com aprovação da equipe.
-3. Configurar a planilha privada e Apps Script conforme `docs/CONFIGURAR_GOOGLE.md`.
-4. Implantar Apps Script com acesso anônimo apenas se a política institucional permitir.
-5. Configurar Pages → Source: GitHub Actions após integrar o PR.
-6. Testar em janela anônima e telefone: ranking, envio, recibo, readback e bloqueio da repetição.
-7. Fazer QA independente dos fluxos, dos PDFs e da responsividade.
+- Manter votacao_aberta = FALSE até concluir todos os testes.
+- Manter a planilha privada; nunca publicar as abas Codigos e Avaliacoes.
+- Não incluir tokens, hashes de produção, IDs privados ou credenciais no GitHub.
+- Se acesso anônimo ao Apps Script não estiver disponível ou não for permitido, não contornar a política institucional.
+- Não declarar o sistema homologado, publicado ou pronto para votação sem evidência dos gates G2–G6.
